@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "20975090429",
+    "firebase_url": "https://flutter-editor-project.firebaseio.com",
+    "project_id": "flutter-editor-project",
+    "storage_bucket": "flutter-editor-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:20975090429:android:da7fff1239bd7dfa895c94",
+        "android_client_info": {
+          "package_name": "com.example.video_editor_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "20975090429-7e71stravimo0tm4ig2mggaeoormg49p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5kOZtx-M_c4oUQFN30F45QycFvDYSh0Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "20975090429-7e71stravimo0tm4ig2mggaeoormg49p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
