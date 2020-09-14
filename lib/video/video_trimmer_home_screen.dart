@@ -1,10 +1,11 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_trimmer/video_trimmer.dart';
 
-import 'VideoEditor.dart';
+import 'video_editor.dart';
 
 class VideoTrimmerHomeScreen extends StatelessWidget {
   final Trimmer _trimmer = Trimmer();

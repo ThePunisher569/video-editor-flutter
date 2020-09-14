@@ -28,8 +28,14 @@ class _VideoEditorState extends State<VideoEditor> {
   bool _resultVisibility = false;
 
   final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
-  String _finalVideoPath;
 
+  final snackBar = SnackBar(
+    content: Text('Video Saved successfully!'),
+    duration: Duration(seconds: 2),
+    behavior: SnackBarBehavior.floating,
+    elevation: 5,
+    backgroundColor: Colors.deepPurpleAccent.shade100,
+  );
 
   Future<String> _saveVideo() async {
 
@@ -61,30 +67,14 @@ class _VideoEditorState extends State<VideoEditor> {
             children: [
               Visibility(
                 visible: _resultVisibility,
-                child: Column(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Video saved Successfully in: $_finalVideoPath\n\nFind the video in file manager using the path provided above.',
-                      style: TextStyle(color: Colors.white)
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        RaisedButton(onPressed: (){
-                          setState(() {
-                            _resultVisibility=false;
-                          });
-                        },
-                        child: Text('Hide'),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(80.0)
-                          ),
-                          color: Colors.deepPurpleAccent,
-                        )
-                      ],
-                    )
+                    CircularProgressIndicator(backgroundColor: Colors.deepPurple),
+                    SizedBox(width: 15),
+                    Text('Saving Video....',style: TextStyle(color: Colors.white))
                   ],
-                ),
+                )
               ),
               Expanded(
                 child: VideoViewer(),
@@ -115,12 +105,13 @@ class _VideoEditorState extends State<VideoEditor> {
                     ),
                     color: Colors.deepPurpleAccent,
                     onPressed: () async {
+                      setState(() => _resultVisibility=true);
+
                       _saveVideo().then((outputPath) {
                         setState(() {
-                          _resultVisibility=true;
-                          _finalVideoPath=outputPath;
+                          _resultVisibility=false;
                         });
-                        final snackBar = SnackBar(content: Text('Video Saved successfully!'));
+
                         Scaffold.of(context).showSnackBar(snackBar);
                       });
                     },
@@ -155,48 +146,57 @@ class _VideoEditorState extends State<VideoEditor> {
                       ),
                       color: Colors.deepPurpleAccent,
                       onPressed: () async{
+                        setState(() => _resultVisibility=true);
                         File file = await FilePicker.getFile(type:FileType.audio);
 
                         if(file != null){
                           String audioFilePath = file.path;
+
+                          //saving the trimmed video
                           await widget._trimmer.saveTrimmedVideo(startValue: _startValue, endValue: _endValue,)
                               .then((value){
 
-                            String mutedVideoFile = value+'_muted.mp4';
-                            _flutterFFmpeg.execute("-i $value -vcodec copy -an $mutedVideoFile")
-                                .then((rc){
+                                  //file has sound so it needs to be muted
+                                  String mutedVideoPath = value+'_muted.mp4';
+                                  _flutterFFmpeg.execute("-i $value -an $mutedVideoPath")
+                                      .then((rc){
 
-                              String finalVideo = value+'_withAudio.mp4';
-                              var arguments = ["-i",mutedVideoFile,"-i",audioFilePath,"-codec","copy","-shortest",finalVideo];
-                              _flutterFFmpeg.executeWithArguments(arguments)
-                                  .then((rc) async {
+                                          //adding audio to the trimmed video to generate final video
+                                          String finalVideoPath = value+'_withAudio.mp4';
+                                          var arguments = ["-i",mutedVideoPath,"-i",audioFilePath,"-codec","copy","-shortest",finalVideoPath];
+                                          _flutterFFmpeg.executeWithArguments(arguments)
+                                              .then((rc) async {
 
-                                await getExternalStorageDirectory()
-                                    .then((value)async {
-                                      if(!(await (Directory(value.path+'/trimmedWithAudio').exists()))){
-                                        Directory(value.path+'/trimmedWithAudio/').create();
-                                      }
+                                            await getExternalStorageDirectory()
+                                                .then((value)async {
+                                              if(!(await (Directory(value.path+'/trimmedWithAudio').exists()))){
+                                                Directory(value.path+'/trimmedWithAudio/').create();
+                                              }
 
-                                  File(finalVideo).copy(value.path+'/trimmedWithAudio/'+finalVideo.split('/').last)
-                                      .then((value){
+                                              //copying the finalVideo from cache to externalStorageDirectory
+                                              File(finalVideoPath).copy(value.path+'/trimmedWithAudio/'+finalVideoPath.split('/').last)
+                                                  .then((value){
 
-                                    print(value.path);
-                                    setState(() {
-                                      _resultVisibility=true;
-                                      _finalVideoPath=value.path;
-                                    });
+                                                print(value.path);
+                                                setState(() {
+                                                  _resultVisibility=false;
+                                                });
+
+
+                                                Scaffold.of(context).showSnackBar(snackBar);
+                                              });
+                                            });
+                                          });
 
                                   });
-                                });
 
 
-                              });
-                            });
+
 
                           });
                         }
                         else{
-                          final snackBar = SnackBar(content: Text('No music selected! Please select a music for the video in order to save the video.'));
+
                           Scaffold.of(context).showSnackBar(snackBar);
                         }
 
